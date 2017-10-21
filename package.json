@@ -1,0 +1,19 @@
+{
+  "name": "gssync",
+  "version": "0.0.1",
+  "description": "Sync schedule from Garoon to CalDav",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/take1130/gssync.git"
+  },
+  "author": "take1130@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/take1130/gssync/issues"
+  },
+  "homepage": "https://github.com/take1130/gssync#readme"
+}
