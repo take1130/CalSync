@@ -15,5 +15,15 @@
   "bugs": {
     "url": "https://github.com/take1130/gssync/issues"
   },
-  "homepage": "https://github.com/take1130/gssync#readme"
+  "homepage": "https://github.com/take1130/gssync#readme",
+  "devDependencies": {
+    "@types/mocha": "^2.2.44",
+    "@types/node": "^8.0.53",
+    "@types/power-assert": "^1.4.29",
+    "mocha": "^4.0.1",
+    "power-assert": "^1.4.4",
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.1"
+  },
+  "dependencies": {}
 }
