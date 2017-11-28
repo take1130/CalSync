@@ -22,4 +22,9 @@ describe("garoonSchedule", () => {
         const versions = await gs.getEventVersion([{ attributes: { id: "732635", version: "1510634372" } }]);
         console.log(versions);
     });
+
+    it("getEvent test", async () => {
+        const event = await gs.getEvent("732635");
+        console.log(event);
+    });
 });
