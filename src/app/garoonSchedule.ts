@@ -23,12 +23,15 @@ export class GaroonSchedule {
      * getEventVersion
      */
     public async getEventVersion(items?: garoon.types.base.ItemVersionType[]): Promise<garoon.types.base.ItemVersionResultType[]> {
-        const request = {
+        const request: garoon.types.schedule.ScheduleGetEventVersionsRequestType = {
             attributes: {
                 start: new Date().toISOString(),
             },
-            event_item: items,
         };
+        if (items) {
+            request.event_item = items;
+        }
+
         const response = await this.client.ScheduleGetEventVersions(request);
 
         if (response.event_item !== undefined) {
