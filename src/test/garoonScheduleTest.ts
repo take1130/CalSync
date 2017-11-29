@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as mocha from "mocha";
 import * as assert from "power-assert";
+import * as util from "util";
 import * as GaroonSchedule from "../app/garoonSchedule";
 
 describe("garoonSchedule", () => {
@@ -25,6 +26,6 @@ describe("garoonSchedule", () => {
 
     it("getEvent test", async () => {
         const event = await gs.getEvent("732635");
-        console.log(event);
+        console.log(util.inspect(event, true, null, true));
     });
 });
