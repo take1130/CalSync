@@ -31,11 +31,8 @@ export class CalDav {
                     reject(error);
                 }
 
-                console.log(body.toString());
-
                 const handler = new soap.XMLHandler();
                 let json = handler.xmlToJson(null, body.toString(), null);
-
                 resolve(json);
             }).auth(user, password);
         });
