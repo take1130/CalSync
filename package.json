@@ -21,6 +21,7 @@
     "@types/node": "^8.0.53",
     "@types/power-assert": "^1.4.29",
     "@types/request": "^2.0.8",
+    "@types/uuid": "^3.4.3",
     "mocha": "^4.0.1",
     "power-assert": "^1.4.4",
     "tslint": "^5.8.0",
