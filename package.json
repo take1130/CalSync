@@ -27,6 +27,7 @@
     "typescript": "^2.6.1"
   },
   "dependencies": {
-    "garoon": "file:garoon-0.0.9.tgz"
+    "garoon": "file:garoon-0.0.9.tgz",
+    "vobject": "^0.1.1"
   }
 }
