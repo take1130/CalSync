@@ -21,6 +21,7 @@
     "@types/node": "^8.0.53",
     "@types/power-assert": "^1.4.29",
     "@types/request": "^2.0.8",
+    "@types/rrule": "^2.1.7",
     "@types/uuid": "^3.4.3",
     "mocha": "^4.0.1",
     "power-assert": "^1.4.4",
@@ -29,6 +30,7 @@
   },
   "dependencies": {
     "garoon": "file:garoon-0.0.9.tgz",
+    "rrule": "^2.2.0",
     "vobject": "^0.1.1"
   }
 }

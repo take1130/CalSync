@@ -1,10 +1,13 @@
 import { types } from "garoon";
 import * as moment from "moment";
+import { RRule, RRuleSet } from "rrule";
 import * as uuid from "uuid/v4";
 const vobject = require("vobject");
 
 export class Converter {
     private event: types.schedule.EventType;
+
+    private const weekday = [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA];
 
     constructor(event: types.schedule.EventType) {
         this.event = event;
@@ -29,6 +32,39 @@ export class Converter {
         const timestamp = Number.parseInt(this.version());
         const date = moment.unix(timestamp).toISOString();
         vevent.setLastModified(new vobject.dateTimeValue(date));
+
+        if (this.event.attributes.event_type === "repeat") {
+            if (this.event.repeat_info) {
+                let rrule: RRule;
+                switch (this.event.repeat_info.condition.attributes.type) {
+                    case "day":
+                        rrule = new RRule({
+                            freq: RRule.DAILY,
+                            until: this.until(),
+                        });
+                        break;
+                    case "week":
+                    case "weekday":
+                        rrule = new RRule({
+                            freq: RRule.WEEKLY,
+                            until: this.until(),
+                            byweekday: this.weekday[this.week()],
+                        });
+                        break;
+                    default:
+                        throw new Error("unknown repeate type");
+                }
+                const rset = new RRuleSet();
+                rset.rrule(rrule);
+                for (const x of this.exdates()) {
+                    rset.exdate(moment(x).toDate());
+                }
+
+                for (const x of rset.valueOf()) {
+                    vevent.addRRULE(x);
+                }
+            }
+        }
 
         calendar.pushComponent(vevent);
         return calendar.toICS();
@@ -117,12 +153,61 @@ export class Converter {
                     return new vobject.dateValue(start.add(1, "day").toISOString());
                 } else {
                     return new vobject.dateTimeValue(this.event.repeat_info.condition.attributes.start_date +
-                                                     "T" + this.event.repeat_info.condition.attributes.end_time);
+                        "T" + this.event.repeat_info.condition.attributes.end_time);
                 }
             }
         }
 
         throw new Error("unknown event_type: " + this.event.attributes.event_type);
+    }
+
+    private until(): Date {
+        if (this.event.attributes.event_type === "repeat") {
+            if (this.event.repeat_info) {
+                if (this.event.attributes.allday === true) {
+                    return moment(this.event.repeat_info.condition.attributes.end_date).toDate();
+                } else {
+                    return moment(this.event.repeat_info.condition.attributes.end_date +
+                        "T" + this.event.repeat_info.condition.attributes.end_time).toDate();
+                }
+            }
+        }
+
+        throw new Error("no repeate event");
+    }
+
+    private week(): number {
+        if (this.event.attributes.event_type === "repeat") {
+            if (this.event.repeat_info) {
+                if (this.event.repeat_info.condition.attributes.week) {
+                    return this.event.repeat_info.condition.attributes.week;
+                }
+            }
+        }
+
+        throw new Error("no week day");
+    }
+
+    private exdates(): string[] {
+        if (this.event.attributes.event_type === "repeat") {
+            if (this.event.repeat_info) {
+                if (this.event.repeat_info.exclusive_datetimes) {
+                    if (this.event.repeat_info.exclusive_datetimes.exclusive_datetime) {
+                        if (this.isEventTypeRepeatInfoExclusiveDatetimesExclusiveDatetime(this.event.repeat_info.exclusive_datetimes.exclusive_datetime)) {
+                            return [this.event.repeat_info.exclusive_datetimes.exclusive_datetime.attributes.start];
+                        } else {
+                            const dates = new Array();
+                            for (const x of this.event.repeat_info.exclusive_datetimes.exclusive_datetime) {
+                                dates.push(x.attributes.start);
+                            }
+                            return dates;
+                        }
+                    }
+                }
+            }
+        }
+
+        throw new Error("");
     }
 
     private isMemberType(x: any): x is types.schedule.MemberType {
@@ -134,6 +219,11 @@ export class Converter {
     }
 
     private isEventDateTimeType(x: any): x is types.schedule.EventDateTimeType {
+        return x && x.attributes;
+    }
+
+    private isEventTypeRepeatInfoExclusiveDatetimesExclusiveDatetime(x: any):
+        x is types.schedule.EventTypeRepeatInfoExclusiveDatetimesExclusiveDatetime {
         return x && x.attributes;
     }
 }

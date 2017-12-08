@@ -14,7 +14,7 @@ function isEventType(x: any): x is types.schedule.EventType {
 
 describe("converter test", () => {
     it("to ics", () => {
-        const json = JSON.parse(fs.readFileSync("test2.json", "utf-8")) as types.schedule.ScheduleGetEventsResponseType;
+        const json = JSON.parse(fs.readFileSync("test.json", "utf-8")) as types.schedule.ScheduleGetEventsResponseType;
 
         if (isEventType(json.schedule_event)) {
             console.log("1");
