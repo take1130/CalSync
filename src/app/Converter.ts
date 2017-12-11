@@ -7,7 +7,7 @@ const vobject = require("vobject");
 export class Converter {
     private event: types.schedule.EventType;
 
-    private const weekday = [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA];
+    private weekday = [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA];
 
     constructor(event: types.schedule.EventType) {
         this.event = event;
@@ -57,7 +57,7 @@ export class Converter {
                 const rset = new RRuleSet();
                 rset.rrule(rrule);
                 for (const x of this.exdates()) {
-                    rset.exdate(moment(x).toDate());
+                    rset.exdate(x.toDate());
                 }
 
                 for (const x of rset.valueOf()) {
@@ -188,17 +188,22 @@ export class Converter {
         throw new Error("no week day");
     }
 
-    private exdates(): string[] {
+    private exdates(): moment.Moment[] {
         if (this.event.attributes.event_type === "repeat") {
             if (this.event.repeat_info) {
+                let startTime = moment.duration(0);
+                if (this.event.repeat_info.condition.attributes.start_time) {
+                    startTime = moment.duration(this.event.repeat_info.condition.attributes.start_time);
+                }
+
                 if (this.event.repeat_info.exclusive_datetimes) {
                     if (this.event.repeat_info.exclusive_datetimes.exclusive_datetime) {
                         if (this.isEventTypeRepeatInfoExclusiveDatetimesExclusiveDatetime(this.event.repeat_info.exclusive_datetimes.exclusive_datetime)) {
-                            return [this.event.repeat_info.exclusive_datetimes.exclusive_datetime.attributes.start];
+                            return [moment(this.event.repeat_info.exclusive_datetimes.exclusive_datetime.attributes.start).add(startTime)];
                         } else {
                             const dates = new Array();
                             for (const x of this.event.repeat_info.exclusive_datetimes.exclusive_datetime) {
-                                dates.push(x.attributes.start);
+                                dates.push(moment(x.attributes.start).add(startTime));
                             }
                             return dates;
                         }
