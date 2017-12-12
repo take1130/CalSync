@@ -27,4 +27,10 @@ describe("converter test", () => {
             console.log(vobject.toICS());
         }
     });
+
+    it("from ics", () => {
+        const ics = fs.readFileSync("test.ics", "utf-8");
+        const vobject = VobjectConverter.fromICS(ics);
+        console.log(vobject.toICS());
+    });
 });

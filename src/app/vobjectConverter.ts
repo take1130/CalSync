@@ -61,6 +61,10 @@ export class VobjectConverter {
         return calendar;
     }
 
+    public static fromICS(ics: string): any {
+        return vobject.parseICS(ics);
+    }
+
     private static weekday = [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA];
 
     private static id(event: types.schedule.EventType): string {
