@@ -3,13 +3,14 @@ import * as mocha from "mocha";
 import * as assert from "power-assert";
 import * as util from "util";
 import * as GaroonSchedule from "../app/garoonSchedule";
+import * as ServerInfo from "../app/serverInfo";
 
 describe("garoonSchedule", () => {
-    let options: any;
+    let options: ServerInfo.IServerInfo;
     let gs: GaroonSchedule.GaroonSchedule;
 
     before(() => {
-        options = JSON.parse(fs.readFileSync("server.json", "utf-8"));
+        options = ServerInfo.readServerInfo("server.json");
         gs = new GaroonSchedule.GaroonSchedule({ url: options.garoon.url });
         gs.authenticate(options.garoon.user, options.garoon.password);
     });

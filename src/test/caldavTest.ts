@@ -4,12 +4,13 @@ import * as assert from "power-assert";
 import { URL } from "url";
 import * as util from "util";
 import { CalDav } from "../app/caldav";
+import * as ServerInfo from "../app/serverInfo";
 
 describe("caldav", () => {
-    let server: any;
+    let server: ServerInfo.IServerInfo;
 
     before(() => {
-        server = JSON.parse(fs.readFileSync("server.json", "utf-8"));
+        server = ServerInfo.readServerInfo("server.json") as ServerInfo.IServerInfo;
     });
 
     it("get current user principal", async () => {
@@ -34,7 +35,7 @@ describe("caldav", () => {
         const url = new URL(server.caldav.url);
         const ics = fs.readFileSync("test.ics", "utf-8");
 
-        const caldav = new CalDav(server.caldav.url, server.caldav.user, server.caldav.password);
+        const caldav = new CalDav(new URL(server.caldav.url), server.caldav.user, server.caldav.password);
         const json = await caldav.put("9e9d1541-d4ec-47ff-924b-a56cb4e6d540.ics", ics);
         console.log(util.inspect(json, true, null, true));
     });
