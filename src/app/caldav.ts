@@ -3,11 +3,52 @@ import { soap } from "strong-soap";
 import { URL } from "url";
 import * as util from "util";
 
+export interface IMultiStatus {
+    response: IResponse | IResponse[];
+}
+
+export interface IResponse {
+    href: string;
+    propstat?: IPropStat | IPropStat[];
+    status?: string;
+}
+
+export interface IPropStat {
+    prop: IProp | undefined;
+    status: string;
+}
+
+export interface ISupportedCalendarComponentSet {
+    comp: IComponent | IComponent[];
+}
+
+export interface IComponent {
+    "$attributes": IComponentAttribute;
+}
+
+export interface IComponentAttribute {
+    name: string;
+}
+
+export interface IProp {
+    "current-user-principal"?: IHref;
+    "calendar-home-set"?: IHref;
+    displayname?: string;
+    getctag?: string;
+    "supported-calendar-component-set"?: ISupportedCalendarComponentSet;
+    getetag?: string;
+    "calendar-data"?: string;
+}
+
+export interface IHref {
+    href: string;
+}
+
 export class CalDav {
     /**
      * getCurrentUserPrincipal
      */
-    public static getCurrentUserPrincipal(url: URL, user: string, password: string) {
+    public static getCurrentUserPrincipal(url: URL, user: string, password: string): Promise<IMultiStatus> {
         const xml: string = `
         <d:propfind xmlns:d="DAV:">
           <d:prop>
@@ -32,7 +73,7 @@ export class CalDav {
 
                 const handler = new soap.XMLHandler();
                 let json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                resolve(json.multistatus as IMultiStatus);
             }).auth(user, password);
         });
     }
@@ -40,7 +81,7 @@ export class CalDav {
     /**
      * getCalendarHomeSet
      */
-    public static getCalendarHomeSet(url: URL, user: string, password: string) {
+    public static getCalendarHomeSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -65,7 +106,7 @@ export class CalDav {
 
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                resolve(json.multistatus as IMultiStatus);
             }).auth(user, password);
         });
     }
@@ -73,7 +114,7 @@ export class CalDav {
     /**
      * getCalendarComponentSet
      */
-    public static getCalendarComponentSet(url: URL, user: string, password: string) {
+    public static getCalendarComponentSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -101,7 +142,7 @@ export class CalDav {
 
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                resolve(json.multistatus as IMultiStatus);
             }).auth(user, password);
         });
     }
@@ -119,7 +160,7 @@ export class CalDav {
     /**
      * search
      */
-    public search(field: string, id: string) {
+    public search(field: string, id: string): Promise<IMultiStatus> {
         const xml = `
         <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -154,7 +195,7 @@ export class CalDav {
 
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                resolve(json.multistatus as IMultiStatus);
             }).auth(this.user, this.password);
         });
     }
@@ -162,7 +203,7 @@ export class CalDav {
     /**
      * put
      */
-    public put(ics: string, event: string, etag?: string) {
+    public put(ics: string, event: string, etag?: string): Promise<string> {
         const options: request.CoreOptions = {
             method: "PUT",
             proxy: "",
@@ -181,9 +222,19 @@ export class CalDav {
                     reject(error);
                 }
 
-                const handler = new soap.XMLHandler();
-                const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                if (response.statusCode) {
+                    if (response.statusCode >= 200 && response.statusCode < 300) {
+                        // 200番台ならOK
+                        const tag = response.headers.etag;
+                        if (tag) {
+                            if (typeof tag === "string") {
+                                resolve(tag);
+                            }
+                        }
+                        return;
+                    }
+                }
+                reject("error");
             }).auth(this.user, this.password);
         });
     }
@@ -191,7 +242,7 @@ export class CalDav {
     /**
      * delete
      */
-    public delete(ics: string, etag: string) {
+    public delete(ics: string, etag: string): Promise<IMultiStatus> {
         const options: request.CoreOptions = {
             method: "DELETE",
             proxy: "",
@@ -210,7 +261,7 @@ export class CalDav {
 
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json);
+                resolve(json.multistatus as IMultiStatus);
             }).auth(this.user, this.password);
         });
     }
