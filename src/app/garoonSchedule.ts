@@ -34,11 +34,13 @@ export class GaroonSchedule {
 
         const response = await this.client.ScheduleGetEventVersions(request);
 
-        if (response.event_item !== undefined) {
-            if (this.isItemVersionResultType(response.event_item)) {
-                return [response.event_item];
-            } else {
-                return response.event_item;
+        if (response) {
+            if (response.event_item !== undefined) {
+                if (this.isItemVersionResultType(response.event_item)) {
+                    return [response.event_item];
+                } else {
+                    return response.event_item;
+                }
             }
         }
 
