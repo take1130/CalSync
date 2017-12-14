@@ -8,6 +8,7 @@ import * as ServerInfo from "./serverInfo";
 import { VobjectConverter } from "./vobjectConverter";
 
 const itemsJson = "items.json";
+const serverJson = "server.json";
 
 function readItems(): types.base.ItemVersionType[] {
     if (fs.existsSync(itemsJson)) {
@@ -21,7 +22,7 @@ function writeItems(items: types.base.ItemVersionType[]) {
 }
 
 async function main() {
-    const serverInfo = JSON.parse(fs.readFileSync("server.json", "utf-8")) as ServerInfo.IServerInfo;
+    const serverInfo = ServerInfo.readServerInfo(serverJson);
     const items = readItems();
 
     const garoon = new GaroonSchedule({ url: serverInfo.garoon.url });
