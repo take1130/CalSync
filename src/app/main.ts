@@ -45,7 +45,34 @@ async function main() {
             case "modify":
                 break;
             case "remove":
-                break;
+                {
+                    try {
+                        const event = await garoon.getEvent(x.attributes.id);
+                        // Garoon 上にはまだ登録されている -> 現在より古いイベントなので、そのまま残す
+                    } catch (event) {
+                        // Garoon から削除されたイベント -> CalDavからも削除
+                        const status = await caldav.search("X-GAROON-ID", x.attributes.id);
+                        if (CalDav.isIResponse(status.response)) {
+                            if (CalDav.isIPropStat(status.response.propstat)) {
+                                if (status.response.propstat) {
+                                    if (status.response.propstat.prop) {
+                                        if (status.response.propstat.prop.getetag) {
+                                            const status2 = await caldav.delete(status.response.href,
+                                                status.response.propstat.prop.getetag);
+                                            if (CalDav.isIResponse(status2.response)) {
+                                                if (status2.response.status) {
+                                                    const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
+                                                    items.splice(n);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
         }
     }
 
