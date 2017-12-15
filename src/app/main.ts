@@ -43,7 +43,28 @@ async function main() {
                     break;
                 }
             case "modify":
-                break;
+                {
+                    const status = await caldav.search("X-GAROON-ID", x.attributes.id);
+                    if (CalDav.isIResponse(status.response)) {
+                        if (CalDav.isIPropStat(status.response.propstat)) {
+                            if (status.response.propstat) {
+                                if (status.response.propstat.prop) {
+                                    const data = status.response.propstat.prop["calendar-data"];
+                                    if (data) {
+                                        let vobject = VobjectConverter.fromICS(data);
+                                        const vevent = vobject.getComponents("VEVENT");
+                                        const response = await garoon.getEvent(x.attributes.id);
+                                        vobject = VobjectConverter.fromGaroonEvent(vevent[0].getUID(), response);
+                                        await caldav.put(vevent[0].getUID() + ".ics", vobject.toICS());
+                                        const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
+                                        items[n].attributes.version = x.attributes.version;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
             case "remove":
                 {
                     try {
