@@ -1,5 +1,5 @@
 import { types } from "garoon";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import { RRule, RRuleSet } from "rrule";
 const vobject = require("vobject");
 
@@ -29,13 +29,13 @@ export class VobjectConverter {
                 let rrule: RRule;
                 switch (event.repeat_info.condition.attributes.type) {
                     case "day":
+                    case "weekday":
                         rrule = new RRule({
                             freq: RRule.DAILY,
                             until: VobjectConverter.until(event),
                         });
                         break;
                     case "week":
-                    case "weekday":
                         rrule = new RRule({
                             freq: RRule.WEEKLY,
                             until: VobjectConverter.until(event),
@@ -76,7 +76,17 @@ export class VobjectConverter {
     }
 
     private static detail(event: types.schedule.EventType): string {
-        return event.attributes.detail || "";
+        let detail = "";
+        if (event.attributes.plan) {
+            detail += event.attributes.plan;
+        }
+        if (event.attributes.detail) {
+            if (detail.length !== 0) {
+                detail += ":";
+            }
+            detail += event.attributes.detail;
+        }
+        return detail;
     }
 
     private static description(event: types.schedule.EventType): string {
@@ -135,7 +145,12 @@ export class VobjectConverter {
             if (event.when) {
                 if (event.when.date) {
                     if (VobjectConverter.isEventDateType(event.when.date)) {
-                        return new vobject.dateValue(event.when.date.attributes.end);
+                        if (event.when.date.attributes.start === event.when.date.attributes.end) {
+                            const start = moment.tz(event.when.date.attributes.start, event.attributes.timezone);
+                            return new vobject.dateValue(start.add(1, "day").format("YYYY-MM-DD"));
+                        } else {
+                            return new vobject.dateValue(event.when.date.attributes.end);
+                        }
                     }
                 } else if (event.when.datetime) {
                     if (VobjectConverter.isEventDateTimeType(event.when.datetime)) {
@@ -209,7 +224,7 @@ export class VobjectConverter {
             }
         }
 
-        throw new Error("");
+        return [];
     }
 
     private static isMemberType(x: any): x is types.schedule.MemberType {

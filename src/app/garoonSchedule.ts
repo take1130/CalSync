@@ -34,11 +34,13 @@ export class GaroonSchedule {
 
         const response = await this.client.ScheduleGetEventVersions(request);
 
-        if (response.event_item !== undefined) {
-            if (this.isItemVersionResultType(response.event_item)) {
-                return [response.event_item];
-            } else {
-                return response.event_item;
+        if (response) {
+            if (response.event_item !== undefined) {
+                if (this.isItemVersionResultType(response.event_item)) {
+                    return [response.event_item];
+                } else {
+                    return response.event_item;
+                }
             }
         }
 
@@ -51,11 +53,13 @@ export class GaroonSchedule {
     public async getEvent(id: string): Promise<garoon.types.schedule.EventType> {
         const response = await this.client.ScheduleGetEventsById({ event_id: id });
 
-        if (response.schedule_event !== undefined) {
-            if (this.isEventType(response.schedule_event)) {
-                return response.schedule_event;
-            } else {
-                return response.schedule_event[0];
+        if (response) {
+            if (response.schedule_event !== undefined) {
+                if (this.isEventType(response.schedule_event)) {
+                    return response.schedule_event;
+                } else {
+                    return response.schedule_event[0];
+                }
             }
         }
 

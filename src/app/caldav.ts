@@ -45,6 +45,14 @@ export interface IHref {
 }
 
 export class CalDav {
+    public static isIResponse(x: any): x is IResponse {
+        return x && x.href;
+    }
+
+    public static isIPropStat(x: any): x is IPropStat {
+        return x && x.status;
+    }
+
     /**
      * getCurrentUserPrincipal
      */
