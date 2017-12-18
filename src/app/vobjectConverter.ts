@@ -76,7 +76,17 @@ export class VobjectConverter {
     }
 
     private static detail(event: types.schedule.EventType): string {
-        return event.attributes.detail || "";
+        let detail = "";
+        if (event.attributes.plan) {
+            detail += event.attributes.plan;
+        }
+        if (event.attributes.detail) {
+            if (detail.length !== 0) {
+                detail += ":";
+            }
+            detail += event.attributes.detail;
+        }
+        return detail;
     }
 
     private static description(event: types.schedule.EventType): string {
