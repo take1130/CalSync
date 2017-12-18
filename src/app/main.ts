@@ -69,7 +69,9 @@ async function main() {
                 {
                     try {
                         const event = await garoon.getEvent(x.attributes.id);
-                        // Garoon 上にはまだ登録されている -> 現在より古いイベントなので、そのまま残す
+                        // Garoon 上にはまだ登録されている -> 現在より古いイベントなので、そのまま残す, 更新itemから削除
+                        const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
+                        items.splice(n);
                     } catch (event) {
                         // Garoon から削除されたイベント -> CalDavからも削除
                         const status = await caldav.search("X-GAROON-ID", x.attributes.id);
