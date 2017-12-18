@@ -1,5 +1,5 @@
 import { types } from "garoon";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import { RRule, RRuleSet } from "rrule";
 const vobject = require("vobject");
 
@@ -145,7 +145,12 @@ export class VobjectConverter {
             if (event.when) {
                 if (event.when.date) {
                     if (VobjectConverter.isEventDateType(event.when.date)) {
-                        return new vobject.dateValue(event.when.date.attributes.end);
+                        if (event.when.date.attributes.start === event.when.date.attributes.end) {
+                            const start = moment.tz(event.when.date.attributes.start, event.attributes.timezone);
+                            return new vobject.dateValue(start.add(1, "day").format("YYYY-MM-DD"));
+                        } else {
+                            return new vobject.dateValue(event.when.date.attributes.end);
+                        }
                     }
                 } else if (event.when.datetime) {
                     if (VobjectConverter.isEventDateTimeType(event.when.datetime)) {

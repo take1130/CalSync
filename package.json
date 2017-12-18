@@ -18,6 +18,7 @@
   "homepage": "https://github.com/take1130/gssync#readme",
   "devDependencies": {
     "@types/mocha": "^2.2.44",
+    "@types/moment-timezone": "^0.5.2",
     "@types/node": "^8.0.53",
     "@types/power-assert": "^1.4.29",
     "@types/request": "^2.0.8",
