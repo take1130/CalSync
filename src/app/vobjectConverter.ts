@@ -29,13 +29,13 @@ export class VobjectConverter {
                 let rrule: RRule;
                 switch (event.repeat_info.condition.attributes.type) {
                     case "day":
+                    case "weekday":
                         rrule = new RRule({
                             freq: RRule.DAILY,
                             until: VobjectConverter.until(event),
                         });
                         break;
                     case "week":
-                    case "weekday":
                         rrule = new RRule({
                             freq: RRule.WEEKLY,
                             until: VobjectConverter.until(event),
@@ -209,7 +209,7 @@ export class VobjectConverter {
             }
         }
 
-        throw new Error("");
+        return [];
     }
 
     private static isMemberType(x: any): x is types.schedule.MemberType {
