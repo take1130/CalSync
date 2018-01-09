@@ -4,6 +4,7 @@ import { URL } from "url";
 import * as Uuid from "uuid/v4";
 import { CalDav } from "./caldav";
 import { GaroonSchedule } from "./garoonSchedule";
+import { Logger } from "./logger";
 import * as ServerInfo from "./serverInfo";
 import { VobjectConverter } from "./vobjectConverter";
 
@@ -22,6 +23,8 @@ function writeItems(items: types.base.ItemVersionType[]) {
 }
 
 async function main() {
+    Logger.Logger.debug("start gssync");
+
     const serverInfo = ServerInfo.readServerInfo(serverJson);
     const items = readItems();
 
@@ -100,6 +103,7 @@ async function main() {
     }
 
     writeItems(items);
+    Logger.Logger.debug("end gssync");
 }
 
 main();

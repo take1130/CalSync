@@ -2,6 +2,7 @@ import * as request from "request";
 import { soap } from "strong-soap";
 import { URL } from "url";
 import * as util from "util";
+import { Logger } from "./logger";
 
 export interface IMultiStatus {
     response: IResponse | IResponse[];
@@ -73,12 +74,17 @@ export class CalDav {
             proxy: "",
             body: xml,
         };
+
+        Logger.Logger.info("getCurrentUserPrincipal: request = [%s]", util.inspect(options, true, null, false));
+
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("getCurrentUserPrincipal: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("getCurrentUserPrincipal: response = [%s]", body.toString());
                 const handler = new soap.XMLHandler();
                 let json = handler.xmlToJson(null, body.toString(), null);
                 resolve(json.multistatus as IMultiStatus);
@@ -106,12 +112,17 @@ export class CalDav {
             proxy: "",
             body: xml,
         };
+
+        Logger.Logger.info("getCalendarHomeSet: request = [%s]", util.inspect(options, true, null, false));
+
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("getCalendarHomeSet: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("getCalendarHomeSet: response = [%s]", body.toString());
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
                 resolve(json.multistatus as IMultiStatus);
@@ -142,12 +153,16 @@ export class CalDav {
             proxy: "",
             body: xml,
         };
+
+        Logger.Logger.info("getCalendarComponentSet: request = [%s]", util.inspect(options, true, null, false));
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("getCalendarComponentSet: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("getCalendarComponentSet: response = [%s]", body.toString());
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
                 resolve(json.multistatus as IMultiStatus);
@@ -195,12 +210,16 @@ export class CalDav {
             proxy: "",
             body: util.format(xml, field, id),
         };
+
+        Logger.Logger.info("search: request = [%s]", util.inspect(options, true, null, false));
         return new Promise((resolve, reject) => {
             request(this.url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("search: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("search: response = [%s]", body.toString());
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
                 resolve(json.multistatus as IMultiStatus);
@@ -224,12 +243,15 @@ export class CalDav {
 
         const putUrl = new URL(ics, this.url);
 
+        Logger.Logger.info("put: request = [%s]", util.inspect(options, true, null, false));
         return new Promise((resolve, reject) => {
             request(putUrl.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("put: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("put: response = [%s]", body.toString());
                 if (response.statusCode) {
                     if (response.statusCode >= 200 && response.statusCode < 300) {
                         // 200番台ならOK
@@ -261,12 +283,15 @@ export class CalDav {
 
         const deleteUrl = new URL(ics, this.url);
 
+        Logger.Logger.info("delete: request = [%s]", util.inspect(options, true, null, false));
         return new Promise((resolve, reject) => {
             request(deleteUrl.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
+                    Logger.Logger.error("delete: error = [%s]", error);
                     reject(error);
                 }
 
+                Logger.Logger.info("delete: response = [%s]", body.toString());
                 const handler = new soap.XMLHandler();
                 const json = handler.xmlToJson(null, body.toString(), null);
                 resolve(json.multistatus as IMultiStatus);
