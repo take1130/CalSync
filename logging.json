@@ -1,0 +1,20 @@
+{
+    "appenders": {
+        "out": {
+            "type": "console"
+        },
+        "log": {
+            "type": "file",
+            "filename": "gssync.log"
+        }
+    },
+    "categories": {
+        "default": {
+            "appenders": [
+                "out",
+                "log"
+            ],
+            "level": "debug"
+        }
+    }
+}

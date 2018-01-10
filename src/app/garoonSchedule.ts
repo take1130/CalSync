@@ -1,5 +1,7 @@
 import * as garoon from "garoon";
 import { URL } from "url";
+import * as util from "util";
+import { Logger } from "./logger";
 
 export class GaroonSchedule {
     private client: garoon.Client;
@@ -32,7 +34,9 @@ export class GaroonSchedule {
             request.event_item = items;
         }
 
+        Logger.Logger.info("getEventVersion: request = [%s]", util.inspect(request, true, null, false));
         const response = await this.client.ScheduleGetEventVersions(request);
+        Logger.Logger.info("getEventVersion: response = [%s]", util.inspect(response, true, null, false));
 
         if (response) {
             if (response.event_item !== undefined) {
@@ -51,7 +55,10 @@ export class GaroonSchedule {
      * getEvent
      */
     public async getEvent(id: string): Promise<garoon.types.schedule.EventType> {
-        const response = await this.client.ScheduleGetEventsById({ event_id: id });
+        const request = { event_id: id };
+        Logger.Logger.info("getEvent(): request = [%s]", util.inspect(request, true, null, false));
+        const response = await this.client.ScheduleGetEventsById(request);
+        Logger.Logger.info("getEvent(): response = [%s]", util.inspect(response, true, null, false));
 
         if (response) {
             if (response.schedule_event !== undefined) {
