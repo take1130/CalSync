@@ -57,7 +57,7 @@ export class CalDav {
     /**
      * getCurrentUserPrincipal
      */
-    public static getCurrentUserPrincipal(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCurrentUserPrincipal(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml: string = `
         <d:propfind xmlns:d="DAV:">
           <d:prop>
@@ -71,7 +71,7 @@ export class CalDav {
                 Depth: "0",
                 Prefer: "return-minimal",
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -95,7 +95,7 @@ export class CalDav {
     /**
      * getCalendarHomeSet
      */
-    public static getCalendarHomeSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCalendarHomeSet(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -109,7 +109,7 @@ export class CalDav {
                 Depth: "0",
                 Prefer: "return-minimal",
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -133,7 +133,7 @@ export class CalDav {
     /**
      * getCalendarComponentSet
      */
-    public static getCalendarComponentSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCalendarComponentSet(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -150,7 +150,7 @@ export class CalDav {
                 Depth: "1",
                 Prefer: "return-minimal",
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -173,11 +173,13 @@ export class CalDav {
     private url: URL;
     private user: string;
     private password: string;
+    private proxy?: string;
 
-    constructor(url: URL, user: string, password: string) {
+    constructor(url: URL, user: string, password: string, proxy?: string) {
         this.url = url;
         this.user = user;
         this.password = password;
+        this.proxy = proxy;
     }
 
     /**
@@ -207,7 +209,7 @@ export class CalDav {
                 Depth: "1",
                 Prefer: "return-minimal",
             },
-            proxy: "",
+            proxy: this.proxy,
             body: util.format(xml, field, id),
         };
 
@@ -233,7 +235,7 @@ export class CalDav {
     public put(ics: string, event: string, etag?: string): Promise<string> {
         const options: request.CoreOptions = {
             method: "PUT",
-            proxy: "",
+            proxy: this.proxy,
             body: event,
         };
 
@@ -275,7 +277,7 @@ export class CalDav {
     public delete(ics: string, etag: string): Promise<IMultiStatus> {
         const options: request.CoreOptions = {
             method: "DELETE",
-            proxy: "",
+            proxy: this.proxy,
             headers: {
                 "If-Match": etag,
             },
