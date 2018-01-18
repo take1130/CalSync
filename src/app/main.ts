@@ -28,7 +28,9 @@ async function main() {
     const serverInfo = ServerInfo.readServerInfo(serverJson);
     const items = readItems();
 
-    const garoon = new GaroonSchedule({ url: serverInfo.garoon.url });
+    const garoon = new GaroonSchedule({ url: serverInfo.garoon.url,
+                                        extraHeaders: serverInfo.garoon.options.extraHeaders,
+                                        endpoint: serverInfo.garoon.options.endpoint });
     garoon.authenticate(serverInfo.garoon.user, serverInfo.garoon.password);
     const events = await garoon.getEventVersion(items);
 

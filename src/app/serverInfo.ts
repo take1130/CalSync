@@ -4,6 +4,14 @@ export interface IGaroonServerInfo {
     url: string;
     user: string;
     password: string;
+    options: IGaroonServerOptions;
+}
+
+export interface IGaroonServerOptions {
+    extraHeaders?: {
+        [key: string]: any;
+    };
+    endpoint?: string;
 }
 
 export interface ICalDavServerInfo {
