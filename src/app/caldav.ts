@@ -45,6 +45,8 @@ export interface IHref {
     href: string;
 }
 
+const userAgent: string = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_3 like Mac OS X) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.0 Mobile/14G60 Safari/602.1";
+
 export class CalDav {
     public static isIResponse(x: any): x is IResponse {
         return x && x.href;
@@ -57,7 +59,7 @@ export class CalDav {
     /**
      * getCurrentUserPrincipal
      */
-    public static getCurrentUserPrincipal(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCurrentUserPrincipal(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml: string = `
         <d:propfind xmlns:d="DAV:">
           <d:prop>
@@ -70,8 +72,9 @@ export class CalDav {
             headers: {
                 Depth: "0",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -80,7 +83,7 @@ export class CalDav {
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
-                    Logger.Logger.error("getCurrentUserPrincipal: error = [%s]", error);
+                    Logger.Logger.error("getCurrentUserPrincipal: error = [%s]", util.inspect(error, true, null, false));
                     reject(error);
                 }
 
@@ -95,7 +98,7 @@ export class CalDav {
     /**
      * getCalendarHomeSet
      */
-    public static getCalendarHomeSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCalendarHomeSet(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -108,8 +111,9 @@ export class CalDav {
             headers: {
                 Depth: "0",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -133,7 +137,7 @@ export class CalDav {
     /**
      * getCalendarComponentSet
      */
-    public static getCalendarComponentSet(url: URL, user: string, password: string): Promise<IMultiStatus> {
+    public static getCalendarComponentSet(url: URL, user: string, password: string, proxy?: string): Promise<IMultiStatus> {
         const xml = `
         <d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:prop>
@@ -149,8 +153,9 @@ export class CalDav {
             headers: {
                 Depth: "1",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
-            proxy: "",
+            proxy,
             body: xml,
         };
 
@@ -158,7 +163,7 @@ export class CalDav {
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
-                    Logger.Logger.error("getCalendarComponentSet: error = [%s]", error);
+                    Logger.Logger.error("getCalendarComponentSet: error = [%s]", util.inspect(error, true, null, false));
                     reject(error);
                 }
 
@@ -173,11 +178,13 @@ export class CalDav {
     private url: URL;
     private user: string;
     private password: string;
-
-    constructor(url: URL, user: string, password: string) {
+    private proxy?: string;
+    
+    constructor(url: URL, user: string, password: string, proxy?: string) {
         this.url = url;
         this.user = user;
         this.password = password;
+        this.proxy = proxy;
     }
 
     /**
@@ -206,8 +213,9 @@ export class CalDav {
             headers: {
                 Depth: "1",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
-            proxy: "",
+            proxy: this.proxy,
             body: util.format(xml, field, id),
         };
 
@@ -233,8 +241,11 @@ export class CalDav {
     public put(ics: string, event: string, etag?: string): Promise<string> {
         const options: request.CoreOptions = {
             method: "PUT",
-            proxy: "",
+            proxy: this.proxy,
             body: event,
+            headers: {
+                "User-Agent": userAgent,
+            }
         };
 
         if (etag) {
@@ -261,6 +272,7 @@ export class CalDav {
                                 resolve(tag);
                             }
                         }
+                        resolve("");
                         return;
                     }
                 }
@@ -275,9 +287,10 @@ export class CalDav {
     public delete(ics: string, etag: string): Promise<IMultiStatus> {
         const options: request.CoreOptions = {
             method: "DELETE",
-            proxy: "",
+            proxy: this.proxy,
             headers: {
                 "If-Match": etag,
+                "User-Agent": userAgent,
             },
         };
 
