@@ -45,6 +45,8 @@ export interface IHref {
     href: string;
 }
 
+const userAgent: string = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_3 like Mac OS X) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.0 Mobile/14G60 Safari/602.1";
+
 export class CalDav {
     public static isIResponse(x: any): x is IResponse {
         return x && x.href;
@@ -70,6 +72,7 @@ export class CalDav {
             headers: {
                 Depth: "0",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
             proxy,
             body: xml,
@@ -80,7 +83,7 @@ export class CalDav {
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
-                    Logger.Logger.error("getCurrentUserPrincipal: error = [%s]", error);
+                    Logger.Logger.error("getCurrentUserPrincipal: error = [%s]", util.inspect(error, true, null, false));
                     reject(error);
                 }
 
@@ -108,6 +111,7 @@ export class CalDav {
             headers: {
                 Depth: "0",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
             proxy,
             body: xml,
@@ -149,6 +153,7 @@ export class CalDav {
             headers: {
                 Depth: "1",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
             proxy,
             body: xml,
@@ -158,7 +163,7 @@ export class CalDav {
         return new Promise((resolve, reject) => {
             request(url.toString(), options, (error: any, response: request.RequestResponse, body: any) => {
                 if (error) {
-                    Logger.Logger.error("getCalendarComponentSet: error = [%s]", error);
+                    Logger.Logger.error("getCalendarComponentSet: error = [%s]", util.inspect(error, true, null, false));
                     reject(error);
                 }
 
@@ -174,7 +179,7 @@ export class CalDav {
     private user: string;
     private password: string;
     private proxy?: string;
-
+    
     constructor(url: URL, user: string, password: string, proxy?: string) {
         this.url = url;
         this.user = user;
@@ -208,6 +213,7 @@ export class CalDav {
             headers: {
                 Depth: "1",
                 Prefer: "return-minimal",
+                "User-Agent": userAgent,
             },
             proxy: this.proxy,
             body: util.format(xml, field, id),
@@ -237,6 +243,9 @@ export class CalDav {
             method: "PUT",
             proxy: this.proxy,
             body: event,
+            headers: {
+                "User-Agent": userAgent,
+            }
         };
 
         if (etag) {
@@ -263,6 +272,7 @@ export class CalDav {
                                 resolve(tag);
                             }
                         }
+                        resolve("");
                         return;
                     }
                 }
@@ -280,6 +290,7 @@ export class CalDav {
             proxy: this.proxy,
             headers: {
                 "If-Match": etag,
+                "User-Agent": userAgent,
             },
         };
 
