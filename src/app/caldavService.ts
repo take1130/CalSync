@@ -19,6 +19,54 @@ export class CalDavService {
         this.proxy = proxy;
     }
 
+    public async put(uuid: string, ics: string): Promise<boolean> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const response = await caldav.put(uuid + ".ics", ics);
+        if (response) {
+            return true;
+        }
+        return false;
+    }
+
+    public async search(id: string): Promise<string | null> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const status = await caldav.search("X-GAROON-ID", id);
+        if (this.isIResponse(status.response)) {
+            if (this.isIPropStat(status.response.propstat)) {
+                if (status.response.propstat) {
+                    if (status.response.propstat.prop) {
+                        const data = status.response.propstat.prop["calendar-data"] as string;
+                        return data;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public async delete(id: string): Promise<boolean> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const status = await caldav.search("X-GAROON-ID", id);
+        if (this.isIResponse(status.response)) {
+            if (this.isIPropStat(status.response.propstat)) {
+                if (status.response.propstat) {
+                    if (status.response.propstat.prop) {
+                        if (status.response.propstat.prop.getetag) {
+                            const status2 = await caldav.delete(status.response.href,
+                                status.response.propstat.prop.getetag);
+                            if (this.isIResponse(status2.response)) {
+                                if (status2.response.status) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public async getCalendars(): Promise<ICalendarInfo[]> {
         const currentUserPrincipal = await this.getCurrentUserPrincipal(this.server);
         let url = new URL(currentUserPrincipal, this.server);
