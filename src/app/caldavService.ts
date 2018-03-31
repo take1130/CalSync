@@ -7,19 +7,79 @@ export interface ICalendarInfo {
 }
 
 export class CalDavService {
-    public static async getCalendars(server: string, user: string, password: string, proxy?: string): Promise<ICalendarInfo[]> {
-        const currentUserPrincipal = await CalDavService.getCurrentUserPrincipal(server, user, password, proxy);
-        let url = new URL(currentUserPrincipal, server);
-        const calendarHomeSet = await CalDavService.getCalendarHomeSet(url.toString(), user, password, proxy);
+    private server: string;
+    private user: string;
+    private password: string;
+    private proxy?: string;
+
+    public constructor(server: string, user: string, password: string, proxy?: string) {
+        this.server = server;
+        this.user = user;
+        this.password = password;
+        this.proxy = proxy;
+    }
+
+    public async put(uuid: string, ics: string): Promise<boolean> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const response = await caldav.put(uuid + ".ics", ics);
+        if (response) {
+            return true;
+        }
+        return false;
+    }
+
+    public async search(id: string): Promise<string | null> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const status = await caldav.search("X-GAROON-ID", id);
+        if (this.isIResponse(status.response)) {
+            if (this.isIPropStat(status.response.propstat)) {
+                if (status.response.propstat) {
+                    if (status.response.propstat.prop) {
+                        const data = status.response.propstat.prop["calendar-data"] as string;
+                        return data;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public async delete(id: string): Promise<boolean> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const status = await caldav.search("X-GAROON-ID", id);
+        if (this.isIResponse(status.response)) {
+            if (this.isIPropStat(status.response.propstat)) {
+                if (status.response.propstat) {
+                    if (status.response.propstat.prop) {
+                        if (status.response.propstat.prop.getetag) {
+                            const status2 = await caldav.delete(status.response.href,
+                                status.response.propstat.prop.getetag);
+                            if (this.isIResponse(status2.response)) {
+                                if (status2.response.status) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public async getCalendars(): Promise<ICalendarInfo[]> {
+        const currentUserPrincipal = await this.getCurrentUserPrincipal(this.server);
+        let url = new URL(currentUserPrincipal, this.server);
+        const calendarHomeSet = await this.getCalendarHomeSet(url.toString());
         url = new URL(calendarHomeSet, url);
-        const calendars = await CalDavService.getCalendarComponentSet(url.toString(), user, password, proxy);
+        const calendars = await this.getCalendarComponentSet(url.toString());
         return calendars;
     }
 
-    private static async getCurrentUserPrincipal(url: string, user: string, password: string, proxy?: string): Promise<string> {
-        const status = await CalDav.CalDav.getCurrentUserPrincipal(new URL(url), user, password, proxy);
-        if (CalDavService.isIResponse(status.response)) {
-            if (CalDavService.isIPropStat(status.response.propstat)) {
+    private async getCurrentUserPrincipal(url: string): Promise<string> {
+        const status = await CalDav.CalDav.getCurrentUserPrincipal(new URL(url), this.user, this.password, this.proxy);
+        if (this.isIResponse(status.response)) {
+            if (this.isIPropStat(status.response.propstat)) {
                 if (status.response.propstat.prop) {
                     const href = status.response.propstat.prop["current-user-principal"];
                     if (href) {
@@ -32,13 +92,13 @@ export class CalDavService {
         throw new Error();
     }
 
-    private static async getCalendarHomeSet(url: string, user: string, password: string, proxy?: string): Promise<string> {
-        const status = await CalDav.CalDav.getCalendarHomeSet(new URL(url), user, password, proxy);
-        if (!CalDavService.isIResponse(status.response)) {
+    private async getCalendarHomeSet(url: string): Promise<string> {
+        const status = await CalDav.CalDav.getCalendarHomeSet(new URL(url), this.user, this.password, this.proxy);
+        if (!this.isIResponse(status.response)) {
             throw new Error();
         }
 
-        if (!CalDavService.isIPropStat(status.response.propstat)) {
+        if (!this.isIPropStat(status.response.propstat)) {
             throw new Error();
         }
 
@@ -56,11 +116,11 @@ export class CalDavService {
         throw new Error();
     }
 
-    private static async getCalendarComponentSet(url: string, user: string, password: string, proxy?: string): Promise<ICalendarInfo[]> {
-        const status = await CalDav.CalDav.getCalendarComponentSet(new URL(url), user, password, proxy);
+    private async getCalendarComponentSet(url: string): Promise<ICalendarInfo[]> {
+        const status = await CalDav.CalDav.getCalendarComponentSet(new URL(url), this.user, this.password, this.proxy);
 
         const response: CalDav.IResponse[] = new Array();
-        if (CalDavService.isIResponse(status.response)) {
+        if (this.isIResponse(status.response)) {
             response.push(status.response);
         } else {
             status.response.forEach((x) => { response.push(x); });
@@ -68,13 +128,13 @@ export class CalDavService {
 
         const calendars: ICalendarInfo[] = new Array();
         response.forEach((x) => {
-            if (CalDavService.isIPropStat(x.propstat)) {
+            if (this.isIPropStat(x.propstat)) {
                 if (x.propstat.prop) {
                     const displayname = x.propstat.prop.displayname || "";
                     const cs = x.propstat.prop["supported-calendar-component-set"];
                     if (cs) {
                         const components: CalDav.IComponent[] = new Array();
-                        if (CalDavService.isIComponent(cs.comp)) {
+                        if (this.isIComponent(cs.comp)) {
                             components.push(cs.comp);
                         } else {
                             cs.comp.forEach((y) => { components.push(y); });
@@ -92,15 +152,15 @@ export class CalDavService {
         return calendars;
     }
 
-    private static isIResponse(x: any): x is CalDav.IResponse {
+    private isIResponse(x: any): x is CalDav.IResponse {
         return x && x.href;
     }
 
-    private static isIPropStat(x: any): x is CalDav.IPropStat {
+    private isIPropStat(x: any): x is CalDav.IPropStat {
         return x && x.status;
     }
 
-    private static isIComponent(x: any): x is CalDav.IComponent {
+    private isIComponent(x: any): x is CalDav.IComponent {
         return x && x.$attributes;
     }
 }
