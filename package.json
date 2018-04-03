@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "garoon": "file:garoon-0.0.9.tgz",
+    "linqts": "^1.11.0",
     "log4js": "^2.4.1",
     "rrule": "^2.2.0",
     "vobject": "^0.1.1"
