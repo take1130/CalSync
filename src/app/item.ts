@@ -3,11 +3,14 @@ import * as fs from 'fs';
 export interface IItem {
     id: string;
     version: string;
-    url: string;
+    uuid: string;
 }
 
 export function readItems(path: string): IItem[] {
-    return JSON.parse(fs.readFileSync(path, 'utf-8')) as IItem[]
+    if (fs.existsSync(path)) {
+        return JSON.parse(fs.readFileSync(path, 'utf-8')) as IItem[]
+    }
+    return [] as IItem[];
 }
 
 export function writeItems(path: string, items: IItem[]) {
