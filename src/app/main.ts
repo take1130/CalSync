@@ -49,7 +49,7 @@ async function main() {
                 {
                     const uuid = new List<Item.IItem>(items)
                         .Single(y => y != undefined && (y.id == x.attributes.id)).uuid;
-                    const status = await caldav.search(uuid);
+                    const status = await caldav.get(uuid);
                     if (status !== null) {
                         let vobject = VobjectConverter.fromICS(status);
                         const vevent = vobject.getComponents("VEVENT");

@@ -28,9 +28,15 @@ export class CalDavService {
         return false;
     }
 
+    public async get(uid: string): Promise<string | null> {
+        const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
+        const status = await caldav.get(uid);
+        return status;
+    }
+
     public async search(id: string): Promise<string | null> {
         const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
-        const status = await caldav.search("X-GAROON-ID", id);
+        const status = await caldav.search("UID", id);
         if (this.isIResponse(status.response)) {
             if (this.isIPropStat(status.response.propstat)) {
                 if (status.response.propstat) {
@@ -46,7 +52,7 @@ export class CalDavService {
 
     public async delete(id: string): Promise<boolean> {
         const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
-        const status = await caldav.search("X-GAROON-ID", id);
+        const status = await caldav.search("UID", id);
         if (this.isIResponse(status.response)) {
             if (this.isIPropStat(status.response.propstat)) {
                 if (status.response.propstat) {
