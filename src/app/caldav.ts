@@ -190,6 +190,33 @@ export class CalDav {
     /**
      * search
      */
+    public get(uid: string): Promise<string> {
+        const options: request.CoreOptions = {
+            method: "GET",
+            headers: {
+                "User-Agent": userAgent,
+            },
+            proxy: this.proxy,
+        };
+
+        Logger.Logger.info("get: request = [%s]", util.inspect(options, true, null, false));
+        return new Promise((resolve, reject) => {
+            request(new URL(uid + ".ics", this.url).toString(),
+                    options, (error: any, response: request.RequestResponse, body: any) => {
+                if (error) {
+                    Logger.Logger.error("get: error = [%s]", error);
+                    reject(error);
+                }
+
+                Logger.Logger.info("get: response = [%s]", body.toString());
+                resolve(body.toString());
+            }).auth(this.user, this.password);
+        });
+    }
+
+    /**
+     * search
+     */
     public search(field: string, id: string): Promise<IMultiStatus> {
         const xml = `
         <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">

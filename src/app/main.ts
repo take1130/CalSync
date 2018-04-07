@@ -7,26 +7,17 @@ import { GaroonSchedule } from "./garoonSchedule";
 import { Logger } from "./logger";
 import * as ServerInfo from "./serverInfo";
 import { VobjectConverter } from "./vobjectConverter";
+import * as Item from "./item";
+import { List } from "linqts";
 
 const itemsJson = "items.json";
 const serverJson = "server.json";
-
-function readItems(): types.base.ItemVersionType[] {
-    if (fs.existsSync(itemsJson)) {
-        return JSON.parse(fs.readFileSync(itemsJson, "utf-8")) as types.base.ItemVersionType[];
-    }
-    return [];
-}
-
-function writeItems(items: types.base.ItemVersionType[]) {
-    fs.writeFileSync(itemsJson, JSON.stringify(items), "utf-8");
-}
 
 async function main() {
     Logger.Logger.debug("start gssync");
 
     const serverInfo = ServerInfo.readServerInfo(serverJson);
-    const items = readItems();
+    const items = Item.readItems(itemsJson);
 
     const garoon = new GaroonSchedule({
         url: serverInfo.garoon.url,
@@ -34,7 +25,12 @@ async function main() {
         endpoint: serverInfo.garoon.options.endpoint
     });
     garoon.authenticate(serverInfo.garoon.user, serverInfo.garoon.password);
-    const events = await garoon.getEventVersion(items);
+
+    const iv = new List<Item.IItem>(items)
+        .Select(x => { return { attributes: { id: x.id, version: x.version } } })
+        .Cast<types.base.ItemVersionType>()
+        .ToArray();
+    const events = await garoon.getEventVersion(iv);
 
     const caldav = new CalDavService(serverInfo.caldav.url, serverInfo.caldav.user, serverInfo.caldav.password);
 
@@ -46,20 +42,22 @@ async function main() {
                     const uuid = Uuid();
                     const vobject = VobjectConverter.fromGaroonEvent(uuid, event);
                     const response = await caldav.put(uuid, vobject.toICS());
-                    items.push({ attributes: { id: x.attributes.id, version: x.attributes.version } });
+                    items.push({ id: x.attributes.id, version: x.attributes.version, uuid } as Item.IItem);
                     break;
                 }
             case "modify":
                 {
-                    const status = await caldav.search(x.attributes.id);
+                    const uuid = new List<Item.IItem>(items)
+                        .Single(y => y != undefined && (y.id == x.attributes.id)).uuid;
+                    const status = await caldav.get(uuid);
                     if (status !== null) {
                         let vobject = VobjectConverter.fromICS(status);
                         const vevent = vobject.getComponents("VEVENT");
                         const response = await garoon.getEvent(x.attributes.id);
                         vobject = VobjectConverter.fromGaroonEvent(vevent[0].getUID(), response);
                         await caldav.put(vevent[0].getUID(), vobject.toICS());
-                        const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
-                        items[n].attributes.version = x.attributes.version;
+                        const n = items.findIndex((v) => v.id === x.attributes.id);
+                        items[n].version = x.attributes.version;
                     }
                     break;
                 }
@@ -68,23 +66,25 @@ async function main() {
                     try {
                         const event = await garoon.getEvent(x.attributes.id);
                         // Garoon 上にはまだ登録されている -> 現在より古いイベントなので、そのまま残す, 更新itemから削除
-                        const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
+                        const n = items.findIndex((v) => v.id === x.attributes.id);
                         items.splice(n, 1);
                     } catch (event) {
                         // Garoon から削除されたイベント -> CalDavからも削除
-                        const status = await caldav.delete(x.attributes.id);
+                        const uuid = new List<Item.IItem>(items)
+                            .Single(y => y != undefined && (y.id == x.attributes.id)).uuid;
+                        const status = await caldav.delete(uuid);
                         if (status) {
-                            const n = items.findIndex((v) => v.attributes.id === x.attributes.id);
+                            const n = items.findIndex((v) => v.id === x.attributes.id);
                             items.splice(n, 1);
                         }
                         break;
                     }
                 }
         }
-
-        writeItems(items);
-        Logger.Logger.debug("end gssync");
     }
+
+    Item.writeItems(itemsJson, items);
+    Logger.Logger.debug("end gssync");
 }
 
 main();
