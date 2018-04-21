@@ -311,17 +311,16 @@ export class CalDav {
     /**
      * delete
      */
-    public delete(ics: string, etag: string): Promise<IMultiStatus> {
+    public delete(ics: string): Promise<IMultiStatus> {
         const options: request.CoreOptions = {
             method: "DELETE",
             proxy: this.proxy,
             headers: {
-                "If-Match": etag,
                 "User-Agent": userAgent,
             },
         };
 
-        const deleteUrl = new URL(ics, this.url);
+        const deleteUrl = new URL(ics + ".ics", this.url);
 
         Logger.Logger.info("delete: request = [%s]", util.inspect(options, true, null, false));
         return new Promise((resolve, reject) => {
@@ -332,9 +331,7 @@ export class CalDav {
                 }
 
                 Logger.Logger.info("delete: response = [%s]", body.toString());
-                const handler = new soap.XMLHandler();
-                const json = handler.xmlToJson(null, body.toString(), null);
-                resolve(json.multistatus as IMultiStatus);
+                resolve(body.toString());
             }).auth(this.user, this.password);
         });
     }

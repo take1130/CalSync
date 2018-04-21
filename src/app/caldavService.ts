@@ -52,25 +52,8 @@ export class CalDavService {
 
     public async delete(id: string): Promise<boolean> {
         const caldav = new CalDav.CalDav(new URL(this.server), this.user, this.password, this.proxy);
-        const status = await caldav.search("UID", id);
-        if (this.isIResponse(status.response)) {
-            if (this.isIPropStat(status.response.propstat)) {
-                if (status.response.propstat) {
-                    if (status.response.propstat.prop) {
-                        if (status.response.propstat.prop.getetag) {
-                            const status2 = await caldav.delete(status.response.href,
-                                status.response.propstat.prop.getetag);
-                            if (this.isIResponse(status2.response)) {
-                                if (status2.response.status) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        const status = await caldav.delete(id);
+        return !status;
     }
 
     public async getCalendars(): Promise<ICalendarInfo[]> {

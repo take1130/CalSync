@@ -114,8 +114,7 @@ describe("caldav", () => {
                 if (status.response.propstat) {
                     if (status.response.propstat.prop) {
                         if (status.response.propstat.prop.getetag) {
-                            const status2 = await caldav.delete(status.response.href,
-                                                                status.response.propstat.prop.getetag);
+                            const status2 = await caldav.delete(status.response.href);
                             console.log(util.inspect(status2, true, null, true));
                             if (isIResponse(status2.response)) {
                                 if (status2.response.status) {
