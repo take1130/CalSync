@@ -149,7 +149,8 @@ export class VobjectConverter {
                             const start = moment.tz(event.when.date.attributes.start, event.attributes.timezone);
                             return new vobject.dateValue(start.add(1, "day").format("YYYY-MM-DD"));
                         } else {
-                            return new vobject.dateValue(event.when.date.attributes.end);
+                            const end = moment.tz(event.when.date.attributes.end, event.attributes.timezone);
+                            return new vobject.dateValue(end.add(1, "day").format("YYYY-MM-DD"));
                         }
                     }
                 } else if (event.when.datetime) {
