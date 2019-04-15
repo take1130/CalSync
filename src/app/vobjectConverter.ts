@@ -155,7 +155,13 @@ export class VobjectConverter {
                     }
                 } else if (event.when.datetime) {
                     if (VobjectConverter.isEventDateTimeType(event.when.datetime)) {
-                        return new vobject.dateTimeValue(event.when.datetime.attributes.end);
+                        if (event.attributes.start_only == true) {
+                            const start = moment.tz(event.when.datetime.attributes.start, event.attributes.timezone);
+                            return new vobject.dateTimeValue(start.add(1, "hour").format());
+                        }
+                        else {
+                            return new vobject.dateTimeValue(event.when.datetime.attributes.end);
+                        }
                     }
                 }
             }

@@ -81,6 +81,7 @@ async function main() {
                     }
                 }
         }
+        Item.writeItems(itemsJson, items);
     }
 
     Item.writeItems(itemsJson, items);
