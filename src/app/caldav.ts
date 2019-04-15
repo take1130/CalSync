@@ -272,6 +272,7 @@ export class CalDav {
             body: event,
             headers: {
                 "User-Agent": userAgent,
+                "Content-Type": "text/calendar",
             }
         };
 
